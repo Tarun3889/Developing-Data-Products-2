@@ -1,0 +1,134 @@
+---
+title: "Cars_Dataset_EDA"
+author: "Tarun"
+date: "4/16/2021"
+output: html_document
+---
+
+
+In this project, I have used the “cars_multi” and “cars_price” datasets. I have tried to understand how the varibles of these datasets are relate to each other, to uncover interesting things, and to communicate those findings. I’m going to focus on the correlation between mpg and the other properties.
+
+I am going to use the following R libraries to assist in my analysis:
+
+library(ggplot2)
+require(GGally)
+require(ggthemes)
+require(plotly)
+require(dplyr)
+require(heatmaply)
+require(ggcorrplot)
+
+
+```{r}
+library(ggplot2)
+require(GGally)
+require(ggthemes)
+require(plotly)
+require(dplyr)
+require(heatmaply)
+require(ggcorrplot)
+cars_multi <- read.csv("cars_multi.csv")
+cars_price <- read.csv("cars_price.csv")
+cars <- left_join(cars_multi, cars_price, by="ID")
+model_years = sort(unique(cars$model))
+cars$model = cars$model %>%
+  factor(labels = model_years)
+origins <- c('USA', 'Europe', 'Japan')
+cars$origin <- factor(cars$origin, labels = origins)
+str(cars)
+cars$horsepower <- as.numeric(cars$horsepower)
+summary(cars)
+```
+
+##Univariate Plots- weight
+
+```{r,echo=FALSE}
+p <-ggplot(cars, aes(weight)) + 
+  geom_histogram(binwidth = 5, col="#454a6f") +
+  labs(title = "Histogram of Weight", y = "Count") +
+  theme_classic()
+ggplotly(p)
+```
+
+The most common weight is something between 2000 and 3000, and there only one unique weight for the majority of the cars
+
+
+
+##Correlation
+
+```{r,echo=FALSE}
+# Compute correlation coefficients
+df <- cars[,-c(1,8,9,10)]
+cor.coef <- cor(df, use="pairwise.complete.obs")
+
+# Compute correlation p-values
+cor.test.p <- function(x){
+    FUN <- function(x, y) cor.test(x, y)[["p.value"]]
+    z <- outer(
+      colnames(x), 
+      colnames(x), 
+      Vectorize(function(i,j) FUN(x[,i], x[,j]))
+    )
+    dimnames(z) <- list(colnames(x), colnames(x))
+    z
+}
+p <- cor.test.p(df)
+
+# Create the heatmap
+heatmaply_cor(
+  cor.coef,
+  node_type = "scatter",
+  point_size_mat = -log10(p), 
+  point_size_name = "-log10(p-value)",
+  label_names = c("x", "y", "Correlation"),
+  main="Correlation Heat Map"
+)
+```
+
+At this plot we can see the correlation between all features.
+
+
+
+## Multivariate Plots
+
+
+This section includes charts that involve three or more variables simultaneously, to give us a more complete look at the questions that presented themselves in the previous sections. Building on the observation in the previous plot, I want to see how each region’s product mix has evolved over time. The best way to illustrate this is with a stacked bar chart over time for each region.
+
+
+```{r,echo=F}
+ggplotly(ggplot(data = cars, aes(x = model)) +
+  geom_bar(aes(fill=factor(cylinders))) +
+  facet_wrap(~ origin, ncol = 1) +
+  labs(x='Model Year', y='Count', title='Each Region of Origin\'s Product Mix Over Time'))
+```
+
+
+As shown in the top section, while the number of four-cylinder cars increases over time, six- and eight-cylinder cars comprise the majority of the United States’ product mix until 1980. Europe and Japan almost exclusively produce four-cylinder cars with just a few exceptions over the entire 13-year period. We can see this phenomenon illustrated when we compare each region’s weight distributions per year using boxplots.
+
+
+```{r,echo=F}
+ggplotly(ggplot(data = cars, aes(x = model, y = weight)) +
+  geom_boxplot(aes(fill=factor(cylinders))) +
+  facet_wrap(~ origin) +
+  labs(x='Model Year',y='Weight',title='Weight Distributions Over Time by Region of Origin'))
+
+```
+
+As we can see, US cars show much higher average weights than Europe and, especially, Japan, until about 1980, when US weight distribution comes down considerably. From above we know that 1980 is when the US converted to a higher percentage of four-cylinder cars. Note that average weights stay more constant for Europe and Japan over the same time period.
+
+Now we can create a similar comparative boxplot for MPG over time.
+
+```{r,echo=F}
+ggplotly(ggplot(data = cars, aes(x = model, y = mpg)) +
+  geom_boxplot(aes(fill=factor(cylinders))) +
+  facet_wrap(~ origin) +
+  labs(x='Model Year',y='MPG',title='Weight Distributions Over Time by Region of Origin'))
+```
+
+The average MPG for each region shows an upward trend, especially towards the end of the 70’s and into the early 80’s. Since Europe and Japan also increased MPG, it is apparent that increasing overall fuel economy was not solely about changing the product mix away from six- and eight-cylinder cars. Indeed, the fuel economy of four-cylinder cars increased over time. We can see that more clearly by restricting our analysis to include only four-cylinder cars.
+
+
+
+## Conclusions
+
+The weight of a car is a strong determinant of its fuel-efficiency, as expressed by MPG. Four-cylinder cars are the lightest, and eight-cylinder cars are the heaviest. Therefore, four-cylinder cars get the best gas mileage.
