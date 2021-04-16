@@ -19,7 +19,7 @@ require(heatmaply)
 require(ggcorrplot)
 
 
-```{r}
+```{r, eval=TRUE}
 library(ggplot2)
 require(GGally)
 require(ggthemes)
@@ -42,7 +42,7 @@ summary(cars)
 
 ##Univariate Plots- weight
 
-```{r,echo=FALSE}
+```{r,echo=T}
 p <-ggplot(cars, aes(weight)) + 
   geom_histogram(binwidth = 5, col="#454a6f") +
   labs(title = "Histogram of Weight", y = "Count") +
@@ -56,7 +56,7 @@ The most common weight is something between 2000 and 3000, and there only one un
 
 ##Correlation
 
-```{r,echo=FALSE}
+```{r,echo=T}
 # Compute correlation coefficients
 df <- cars[,-c(1,8,9,10)]
 cor.coef <- cor(df, use="pairwise.complete.obs")
@@ -95,7 +95,7 @@ At this plot we can see the correlation between all features.
 This section includes charts that involve three or more variables simultaneously, to give us a more complete look at the questions that presented themselves in the previous sections. Building on the observation in the previous plot, I want to see how each region’s product mix has evolved over time. The best way to illustrate this is with a stacked bar chart over time for each region.
 
 
-```{r,echo=F}
+```{r,echo=T}
 ggplotly(ggplot(data = cars, aes(x = model)) +
   geom_bar(aes(fill=factor(cylinders))) +
   facet_wrap(~ origin, ncol = 1) +
@@ -106,7 +106,7 @@ ggplotly(ggplot(data = cars, aes(x = model)) +
 As shown in the top section, while the number of four-cylinder cars increases over time, six- and eight-cylinder cars comprise the majority of the United States’ product mix until 1980. Europe and Japan almost exclusively produce four-cylinder cars with just a few exceptions over the entire 13-year period. We can see this phenomenon illustrated when we compare each region’s weight distributions per year using boxplots.
 
 
-```{r,echo=F}
+```{r,echo=T}
 ggplotly(ggplot(data = cars, aes(x = model, y = weight)) +
   geom_boxplot(aes(fill=factor(cylinders))) +
   facet_wrap(~ origin) +
@@ -118,7 +118,7 @@ As we can see, US cars show much higher average weights than Europe and, especia
 
 Now we can create a similar comparative boxplot for MPG over time.
 
-```{r,echo=F}
+```{r,echo=T}
 ggplotly(ggplot(data = cars, aes(x = model, y = mpg)) +
   geom_boxplot(aes(fill=factor(cylinders))) +
   facet_wrap(~ origin) +
